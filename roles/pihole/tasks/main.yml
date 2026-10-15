@@ -1,0 +1,42 @@
+---
+- name: Create pihole directories
+  ansible.builtin.file:
+    path: "/opt/pihole/{{ item }}"
+    state: directory
+    mode: '0755'
+  loop:
+    - etc-pihole
+    - etc-dnsmasq.d
+
+- name: Copy docker-compose.yml
+  ansible.builtin.template:
+    src: docker-compose.yml.j2
+    dest: /opt/pihole/docker-compose.yml
+    mode: '0644'
+  notify: restart pihole
+
+- name: Open port 53/tcp
+  community.general.ufw:
+    rule: allow
+    port: '53'
+    proto: tcp
+  when: ansible_os_family == "Debian"
+
+- name: Open port 53/udp
+  community.general.ufw:
+    rule: allow
+    port: '53'
+    proto: udp
+  when: ansible_os_family == "Debian"
+
+- name: Open port 80 for Pi-hole admin
+  community.general.ufw:
+    rule: allow
+    port: '80'
+    proto: tcp
+  when: ansible_os_family == "Debian"
+
+- name: Start Pi-hole stack
+  community.docker.docker_compose_v2:
+    project_src: /opt/pihole
+    state: present

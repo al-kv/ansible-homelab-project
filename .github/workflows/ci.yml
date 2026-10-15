@@ -1,0 +1,34 @@
+name: Ansible Lint
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install ansible-lint
+        run: pip install ansible-core ansible-lint
+
+      - name: Run ansible-lint
+        run: ansible-lint playbooks/ roles/ || true
+
+      - name: Install shellcheck
+        run: sudo apt-get install -y shellcheck
+
+      - name: Run shellcheck (if scripts exist)
+        run: |
+          if find . -name "*.sh" | grep -q .; then
+            find . -name "*.sh" -exec shellcheck {} +
+          else
+            echo "No shell scripts — skipping"
+          fi

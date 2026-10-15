@@ -1,0 +1,41 @@
+---
+- name: Install unattended-upgrades (Debian)
+  ansible.builtin.apt:
+    name:
+      - unattended-upgrades
+      - apt-listchanges
+    state: present
+    update_cache: true
+  when: ansible_os_family == "Debian"
+
+- name: Configure auto-upgrades (Debian)
+  ansible.builtin.copy:
+    dest: /etc/apt/apt.conf.d/20auto-upgrades
+    content: |
+      APT::Periodic::Update-Package-Lists "1";
+      APT::Periodic::Unattended-Upgrade "1";
+      APT::Periodic::Download-Upgradeable-Packages "1";
+      APT::Periodic::AutocleanInterval "7";
+    mode: '0644'
+  when: ansible_os_family == "Debian"
+  notify: restart unattended-upgrades
+
+- name: Enable unattended-upgrades service (Debian)
+  ansible.builtin.service:
+    name: unattended-upgrades
+    state: started
+    enabled: true
+  when: ansible_os_family == "Debian"
+
+- name: Install dnf-automatic (RedHat)
+  ansible.builtin.dnf:
+    name: dnf-automatic
+    state: present
+  when: ansible_os_family == "RedHat"
+
+- name: Enable dnf-automatic timer (RedHat)
+  ansible.builtin.systemd:
+    name: dnf-automatic.timer
+    state: started
+    enabled: true
+  when: ansible_os_family == "RedHat"

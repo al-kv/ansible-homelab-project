@@ -1,0 +1,48 @@
+---
+# 1. Создать папку для мониторинга. Всё будет в /opt/monitoring.
+- name: Create monitoring directory
+  ansible.builtin.file:
+    path: /opt/monitoring
+    state: directory
+    mode: '0755'
+
+# 2. Создать docker-compose.yml из шаблона.
+#    template, а не copy — потому что внутри {{ grafana_admin_password }} из Vault.
+- name: Copy docker-compose.yml
+  ansible.builtin.template:
+    src: docker-compose.yml.j2
+    dest: /opt/monitoring/docker-compose.yml
+    mode: '0644'
+  notify: restart monitoring
+
+# 3. Скопировать prometheus.yml как есть — без переменных.
+#    Поэтому copy, а не template. src ищется в roles/monitoring_stack/files/.
+- name: Copy prometheus.yml
+  ansible.builtin.copy:
+    src: prometheus.yml
+    dest: /opt/monitoring/prometheus.yml
+    mode: '0644'
+  notify: restart monitoring
+
+# 4. alertmanager.yml — через template, потому что там токен Telegram из Vault.
+- name: Copy alertmanager.yml
+  ansible.builtin.template:
+    src: alertmanager.yml.j2
+    dest: /opt/monitoring/alertmanager.yml
+    mode: '0644'
+  notify: restart monitoring
+
+# 5. Поднять стек через docker-compose.
+#    project_src — папка, где лежит docker-compose.yml.
+#    state: present — контейнеры запущены и работают.
+- name: Start monitoring stack
+  community.docker.docker_compose_v2:
+    project_src: /opt/monitoring
+    state: present
+
+- name: Copy alerts.yml
+  ansible.builtin.copy:
+    src: alerts.yml
+    dest: /opt/monitoring/alerts.yml
+    mode: '0644'
+  notify: restart monitoring

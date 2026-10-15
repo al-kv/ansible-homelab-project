@@ -1,0 +1,6 @@
+---
+- name: restart unattended-upgrades
+  ansible.builtin.service:
+    name: unattended-upgrades
+    state: restarted
+  when: ansible_os_family == "Debian"

@@ -1,0 +1,88 @@
+---
+# 1. Установка nginx. Два блока — потому что разные пакетные менеджеры.
+#    apt для Ubuntu/Debian, dnf для Rocky/Alma. when выбирает нужный.
+- name: Install nginx (Debian)
+  ansible.builtin.apt:
+    name: nginx
+    state: present                  # установить (не удалять, не обновлять)
+    update_cache: true              # обновить список пакетов перед установкой
+  when: ansible_os_family == "Debian"
+
+- name: Install nginx (RedHat)
+  ansible.builtin.dnf:
+    name: nginx
+    state: present
+  when: ansible_os_family == "RedHat"
+
+# 2. Создать папки для сайтов. loop — повторить для site1 и site2.
+#    {{ item }} подставит по очереди site1, потом site2.
+#    Владелец разный: www-data на Debian, nginx на RedHat.
+- name: Create site directories
+  ansible.builtin.file:
+    path: "/var/www/{{ item }}"
+    state: directory                # создать папку
+    owner: www-data
+    group: www-data
+    mode: '0755'
+  loop:
+    - site1
+    - site2
+  when: ansible_os_family == "Debian"
+
+- name: Create site directories (RedHat)
+  ansible.builtin.file:
+    path: "/var/www/{{ item }}"
+    state: directory
+    owner: nginx
+    group: nginx
+    mode: '0755'
+  loop:
+    - site1
+    - site2
+  when: ansible_os_family == "RedHat"
+
+# 3. Создать index.html в каждой папке.
+#    content: | — многострочный текст. Переменные подставятся:
+#    {{ item }} = site1/site2, {{ inventory_hostname }} = имя VM (vm-web, vm-legacy).
+- name: Deploy index pages
+  ansible.builtin.copy:
+    dest: "/var/www/{{ item }}/index.html"
+    content: |
+      <h1>Site {{ item }} on {{ inventory_hostname }}</h1>
+    mode: '0644'
+  loop:
+    - site1
+    - site2
+
+# 4. Запустить nginx сейчас (state) + автозапуск при загрузке (enabled).
+- name: Enable nginx
+  ansible.builtin.service:
+    name: nginx
+    state: started
+    enabled: true
+
+# 5. SELinux — только для RedHat. Разрешает nginx ходить по сети
+#    (нужно для reverse-proxy). persistent: true — сохранить после перезагрузки.
+- name: SELinux — allow nginx network
+  ansible.posix.seboolean:
+    name: httpd_can_network_connect
+    state: true
+    persistent: true
+  when: ansible_os_family == "RedHat"
+
+# 6. Файрвол — два блока. Один порт, разные инструменты.
+#    ufw на Debian, firewalld на RedHat. service: http = порт 80.
+- name: Firewall Debian
+  community.general.ufw:
+    rule: allow
+    port: '80'
+    proto: tcp
+  when: ansible_os_family == "Debian"
+
+- name: Firewall RedHat
+  ansible.posix.firewalld:
+    service: http                   # firewalld знает, что http = 80/tcp
+    permanent: true
+    state: enabled
+    immediate: true
+  when: ansible_os_family == "RedHat"

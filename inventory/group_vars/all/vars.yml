@@ -1,0 +1,29 @@
+---
+# Не секретные переменные. Секреты — в vault.yml
+
+timezone: "Europe/Moscow"
+#Используется в роли common для timedatectl
+ssh_port: 22
+#Порт SSH. Если поменяешь — изменится везде
+ssh_allowed_users:
+  - admin
+  - admin1
+  - student
+#Список. В шаблоне sshd_config развернётся в AllowUsers admin admin1 student
+
+node_exporter_version: "1.8.2"
+#Версия. Хочешь обновить — меняешь тут, не в роли
+promtail_version: "3.2.0"
+#То же
+
+loki_url: "http://192.168.1.131:3100/loki/api/v1/push"
+#Куда promtail отправляет логи
+
+# Ссылки на секреты из vault.yml
+pihole_password: "{{ vault_pihole_password }}"
+#Ссылка на секрет. Само значение — в vault.yml. Здесь только имя
+wg_server_private_key: "{{ vault_wg_server_private_key }}"
+wg_client_public_key: "{{ vault_wg_client_public_key }}"
+telegram_bot_token: "{{ vault_telegram_bot_token }}"
+telegram_chat_id: "{{ vault_telegram_chat_id }}"
+grafana_admin_password: "{{ vault_grafana_admin_password }}"

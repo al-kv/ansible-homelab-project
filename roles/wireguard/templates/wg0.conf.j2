@@ -1,0 +1,10 @@
+[Interface]
+Address = 10.10.0.1/24
+ListenPort = 51820
+PrivateKey = {{ wg_server_private_key }}
+PostUp = iptables -t nat -A POSTROUTING -s 10.10.0.0/24 -o enp0s3 -j MASQUERADE
+PostDown = iptables -t nat -D POSTROUTING -s 10.10.0.0/24 -o enp0s3 -j MASQUERADE
+
+[Peer]
+PublicKey = {{ wg_client_public_key }}
+AllowedIPs = 10.10.0.2/32

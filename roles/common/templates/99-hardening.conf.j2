@@ -1,0 +1,12 @@
+# {{ ansible_managed }}
+PermitRootLogin no
+PasswordAuthentication no
+KbdInteractiveAuthentication no
+MaxAuthTries 3
+PubkeyAuthentication yes
+ClientAliveInterval 300
+ClientAliveCountMax 2
+
+{% for user in ssh_allowed_users %}
+AllowUsers {{ user }}
+{% endfor %}

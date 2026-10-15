@@ -1,0 +1,47 @@
+---
+all:
+#Корневая группа. Без неё Ansible не поймёт структуру
+  vars:
+#vars: (в all)	Настройки для всех машин
+    ansible_user: admin
+#По умолчанию заходить как admin на все машины (проще говоря это user control машины)
+    ansible_ssh_private_key_file: /home/admin/.ssh/id_ed25519
+#Каким ключом подключаться
+    ansible_python_interpreter: /usr/bin/python3
+#Где на целевой машине python — Ansible использует его для выполнения модулей
+
+  children:
+#Здесь начинаются группы
+    control:
+#Группа для управляющей VM
+      hosts:
+        vm-ctrl:
+#Имя машины
+          ansible_host: 192.168.1.131
+#Реальный IP vm-ctrl
+          ansible_connection: local
+#Ключевое. Не ходить по SSH, работать локально. Ansible запущен на vm-ctrl — SSH к себе избыточен
+
+    web:
+      hosts:
+        vm-web:
+          ansible_host: 192.168.1.82
+
+    dns:
+      hosts:
+        vm-dns:
+          ansible_host: 192.168.1.94
+
+    vpn:
+      hosts:
+        vm-vpn:
+          ansible_host: 192.168.1.77
+          ansible_user: admin1
+#Переопределяем пользователя для vm-vpn — там admin1, а не admin
+
+    legacy:
+      hosts:
+        vm-legacy:
+          ansible_host: 192.168.1.62
+          ansible_user: student
+#На Rocky пользователь student

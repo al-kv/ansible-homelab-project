@@ -1,0 +1,70 @@
+---
+- name: Base configuration for all hosts
+  hosts: all
+  become: true
+  roles:
+    - role: common
+      tags: [common]
+    - role: unattended_upgrades
+      tags: [unattended_upgrades]
+
+- name: Web servers
+  hosts: web
+  become: true
+  roles:
+    - role: docker
+      tags: [docker]
+    - role: nginx
+      tags: [nginx]
+    - role: node_exporter
+      tags: [node_exporter]
+    - role: promtail
+      tags: [promtail]
+
+- name: DNS server
+  hosts: dns
+  become: true
+  roles:
+    - role: docker
+      tags: [docker]
+    - role: pihole
+      tags: [pihole]
+    - role: node_exporter
+      tags: [node_exporter]
+    - role: promtail
+      tags: [promtail]
+
+- name: VPN server
+  hosts: vpn
+  become: true
+  roles:
+    - role: wireguard
+      tags: [wireguard]
+    - role: node_exporter
+      tags: [node_exporter]
+    - role: promtail
+      tags: [promtail]
+
+- name: Legacy RHEL server
+  hosts: legacy
+  become: true
+  roles:
+    - role: nginx
+      tags: [nginx]
+    - role: node_exporter
+      tags: [node_exporter]
+    - role: promtail
+      tags: [promtail]
+
+- name: Monitoring stack on control node
+  hosts: control
+  become: true
+  roles:
+    - role: docker
+      tags: [docker]
+    - role: node_exporter
+      tags: [node_exporter]
+    - role: promtail
+      tags: [promtail]
+    - role: monitoring_stack
+      tags: [monitoring_stack]

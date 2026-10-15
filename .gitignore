@@ -1,0 +1,13 @@
+.vault_pass
+*.retry
+facts_cache/
+__pycache__/
+*.pyc
+.vault_pass
+*.key
+*.pem
+id_*
+known_hosts
+*.log
+*.tar.gz
+.terraform/

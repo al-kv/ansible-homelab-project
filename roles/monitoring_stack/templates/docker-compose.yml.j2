@@ -1,0 +1,55 @@
+# Docker Compose файл для стека мониторинга.
+# Поднимает 4 контейнера: Prometheus, Grafana, Alertmanager, Loki.
+
+services:
+  # ─── PROMETHEUS ───────────────────────────────────────────
+  # Собирает метрики с node_exporter'ов. Отдаёт их Grafana.
+  prometheus:
+    image: prom/prometheus:latest              # официальный образ
+    container_name: prometheus                 # имя контейнера = prometheus
+    ports:
+      - "9090:9090"                            # снаружи:внутри
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml
+      - ./alerts.yml:/etc/prometheus/alerts.yml   # конфиг снаружи
+      - prometheus_data:/prometheus            # данные — в named volume
+    restart: unless-stopped                    # автозапуск, но не после ручного stop
+
+  # ─── GRAFANA ──────────────────────────────────────────────
+  # Веб-интерфейс. Показывает метрики и логи. Порт 3000.
+  grafana:
+    image: grafana/grafana:latest
+    container_name: grafana
+    ports:
+      - "3000:3000"
+    environment:
+      GF_SECURITY_ADMIN_PASSWORD: "{{ grafana_admin_password }}"   # пароль из Vault
+    volumes:
+      - grafana_data:/var/lib/grafana          # дашборды, настройки — в volume
+    restart: unless-stopped
+
+  # ─── ALERTMANAGER ─────────────────────────────────────────
+  # Принимает алерты от Prometheus. Шлёт в Telegram.
+  alertmanager:
+    image: prom/alertmanager:latest
+    container_name: alertmanager
+    ports:
+      - "9093:9093"
+    volumes:
+      - ./alertmanager.yml:/etc/alertmanager/alertmanager.yml
+    restart: unless-stopped
+
+  # ─── LOKI ─────────────────────────────────────────────────
+  # Хранилище логов. Promtail отправляет сюда, Grafana читает отсюда.
+  loki:
+    image: grafana/loki:latest
+    container_name: loki
+    ports:
+      - "3100:3100"                            # сюда promtail шлёт логи
+    restart: unless-stopped
+
+# Именованные volumes — Docker управляет ими сам.
+# Данные сохраняются между перезапусками контейнеров.
+volumes:
+  prometheus_data:
+  grafana_data:

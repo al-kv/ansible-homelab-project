@@ -1,0 +1,26 @@
+---
+# Установка Docker. Только для Debian-семейства — у нас Docker нужен
+# на vm-ctrl, vm-web, vm-dns (все Ubuntu).
+
+- name: Install docker packages (Debian)
+  ansible.builtin.apt:
+    name:
+      - docker.io
+      - docker-compose-v2
+    state: present
+    update_cache: true
+  when: ansible_os_family == "Debian"
+
+- name: Enable and start docker
+  ansible.builtin.service:
+    name: docker
+    state: started
+    enabled: true
+  when: ansible_os_family == "Debian"
+
+- name: Add admin user to docker group
+  ansible.builtin.user:
+    name: admin
+    groups: docker
+    append: true
+  when: ansible_os_family == "Debian"
