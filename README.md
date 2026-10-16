@@ -71,3 +71,27 @@
 ## Лицензия
 
 MIT
+
+## Адреса сервисов
+
+| Сервис | URL |
+|---|---|
+| Grafana | http://192.168.1.131:3000 |
+| Prometheus | http://192.168.1.131:9090 |
+| Alertmanager | http://192.168.1.131:9093 |
+| Loki API | http://192.168.1.131:3100 |
+| Pi-hole admin | http://192.168.1.94/admin |
+| Nginx vm-web | http://192.168.1.82 |
+| Nginx vm-legacy | http://192.168.1.62 |
+
+## Проверка идемпотентности
+
+    ansible-playbook playbooks/site.yml    # 1-й прогон
+    ansible-playbook playbooks/site.yml    # 2-й → changed=0 на всех VM
+
+## Проверка состояния
+
+    ansible all -m shell -a "systemctl is-active node_exporter promtail chrony auditd fail2ban" --become
+    curl -s http://192.168.1.131:9090/api/v1/targets | jq '.data.activeTargets[] | {instance: .labels.instance, health}'
+    ansible vm-ctrl -m shell -a "docker ps" --become
+    ansible vm-dns  -m shell -a "docker ps" --become
