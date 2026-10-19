@@ -1,11 +1,11 @@
 ---
-- name: restart monitoring
+- name: Restart monitoring
   community.docker.docker_compose_v2:
     project_src: /opt/monitoring
     state: absent
   listen: restart monitoring
 
-- name: restart monitoring (up)
+- name: Restart monitoring (up)
   community.docker.docker_compose_v2:
     project_src: /opt/monitoring
     state: present

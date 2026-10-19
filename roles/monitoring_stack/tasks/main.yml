@@ -64,34 +64,34 @@
   ansible.builtin.uri:
     url: http://127.0.0.1:9090/-/ready
     status_code: 200
-  register: prom
+  register: monitoring_stack_prom
   retries: 30
   delay: 3
-  until: prom.status == 200
+  until: monitoring_stack_prom.status == 200
 
 - name: Wait for Grafana
   ansible.builtin.uri:
     url: http://127.0.0.1:3000/api/health
     status_code: 200
-  register: graf
+  register: monitoring_stack_graf
   retries: 30
   delay: 3
-  until: graf.status == 200
+  until: monitoring_stack_graf.status == 200
 
 - name: Wait for Loki
   ansible.builtin.uri:
     url: http://127.0.0.1:3100/ready
     status_code: 200
-  register: lok
+  register: monitoring_stack_lok
   retries: 30
   delay: 3
-  until: lok.status == 200
+  until: monitoring_stack_lok.status == 200
 
 - name: Wait for Alertmanager
   ansible.builtin.uri:
     url: http://127.0.0.1:9093/-/ready
     status_code: 200
-  register: am
+  register: monitoring_stack_am
   retries: 30
   delay: 3
-  until: am.status == 200
+  until: monitoring_stack_am.status == 200
