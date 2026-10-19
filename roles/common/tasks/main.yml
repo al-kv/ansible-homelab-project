@@ -82,6 +82,8 @@
 # ---------------------------------------------------------------------------
 # SSH hardening
 # ---------------------------------------------------------------------------
+
+
 - name: Create sshd_config.d directory
   ansible.builtin.file:
     path: /etc/ssh/sshd_config.d
