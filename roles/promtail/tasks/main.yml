@@ -21,7 +21,7 @@
     dest: /usr/local/bin/promtail
     mode: '0755'
     remote_src: true
-  notify: restart promtail
+  notify: Restart promtail
 
 # 4. Создать конфиг из шаблона (Jinja2). В шаблоне подставятся переменные
 #    типа {{ loki_url }} и {{ inventory_hostname }}. Это отличается от copy:
@@ -31,7 +31,7 @@
     src: promtail-config.yml.j2       # ищется в roles/promtail/templates/
     dest: /etc/promtail-config.yml
     mode: '0644'
-  notify: restart promtail
+  notify: Restart promtail
 
 # 5. Создать systemd-юнит. content: | — многострочный текст прямо в задаче.
 #    ExecStart — команда запуска. Restart=always — перезапускать при падении.
@@ -50,7 +50,7 @@
       [Install]
       WantedBy=multi-user.target
     mode: '0644'
-  notify: restart promtail
+  notify: Restart promtail
 
 # 6. Запустить сервис сейчас (state) и включить автозапуск при загрузке (enabled).
 - name: Enable promtail

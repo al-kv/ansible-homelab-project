@@ -21,6 +21,10 @@ jobs:
           pip install ansible-core ansible-lint
           ansible-galaxy collection install community.general community.docker ansible.posix
 
+      # Вот тот самый секрет: создаем фейковый файл с паролем для CI
+      - name: Create dummy vault password file
+        run: echo "dummy_password" > .vault_pass
+
       - name: Run ansible-lint
         run: ansible-lint playbooks/ roles/
 
