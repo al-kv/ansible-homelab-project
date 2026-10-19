@@ -1,7 +1,4 @@
 ---
-- name: Prevent apt lock races
-  ansible.builtin.include_tasks: apt-lock.yml
-
 - name: Set timezone
   community.general.timezone:
     name: "{{ timezone }}"
@@ -107,14 +104,3 @@
     enabled: true
 
 # Возвращаем apt-daily таймеры после всех apt-операций
-- name: Re-enable apt-daily timers (Debian)
-  ansible.builtin.systemd:
-    name: "{{ item }}"
-    state: started
-    enabled: true
-  loop:
-    - apt-daily.timer
-    - apt-daily-upgrade.timer
-  when: ansible_os_family == "Debian"
-  failed_when: false
-  changed_when: false

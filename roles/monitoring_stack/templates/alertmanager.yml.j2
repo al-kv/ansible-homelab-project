@@ -7,4 +7,4 @@ receivers:
       - bot_token: "{{ telegram_bot_token }}"
         chat_id: {{ telegram_chat_id }}
         parse_mode: HTML
-        message: '{{ "{{" }} template "telegram.default.message" . {{ "}}" }}'
+        message: '{{ "{{" }} template "telegram.html.message" . {{ "}}" }}'
