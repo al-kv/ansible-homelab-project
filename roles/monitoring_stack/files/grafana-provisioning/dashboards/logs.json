@@ -1,0 +1,28 @@
+{
+  "title": "Logs",
+  "uid": "logs-01",
+  "schemaVersion": 39,
+  "panels": [
+    {
+      "type": "logs",
+      "title": "Nginx",
+      "gridPos": {"h": 8, "w": 24, "x": 0, "y": 0},
+      "datasource": {"type": "loki", "uid": "loki"},
+      "targets": [{"expr": "{job=\"nginx\"}"}]
+    },
+    {
+      "type": "logs",
+      "title": "Syslog",
+      "gridPos": {"h": 8, "w": 12, "x": 0, "y": 8},
+      "datasource": {"type": "loki", "uid": "loki"},
+      "targets": [{"expr": "{job=\"syslog\"}"}]
+    },
+    {
+      "type": "logs",
+      "title": "fail2ban",
+      "gridPos": {"h": 8, "w": 12, "x": 12, "y": 8},
+      "datasource": {"type": "loki", "uid": "loki"},
+      "targets": [{"expr": "{job=\"fail2ban\"}"}]
+    }
+  ]
+}

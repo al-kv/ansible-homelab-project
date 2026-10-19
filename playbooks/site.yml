@@ -64,7 +64,6 @@
       tags: [docker]
     - role: node_exporter
       tags: [node_exporter]
-    - role: promtail
-      tags: [promtail]
+    # promtail на vm-ctrl работает в Docker (внутри monitoring_stack)
     - role: monitoring_stack
       tags: [monitoring_stack]

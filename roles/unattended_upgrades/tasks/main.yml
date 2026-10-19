@@ -6,6 +6,7 @@
       - apt-listchanges
     state: present
     update_cache: true
+    lock_timeout: 300
   when: ansible_os_family == "Debian"
 
 - name: Configure auto-upgrades (Debian)
@@ -19,13 +20,6 @@
     mode: '0644'
   when: ansible_os_family == "Debian"
   notify: restart unattended-upgrades
-
-- name: Enable unattended-upgrades service (Debian)
-  ansible.builtin.service:
-    name: unattended-upgrades
-    state: started
-    enabled: true
-  when: ansible_os_family == "Debian"
 
 - name: Install dnf-automatic (RedHat)
   ansible.builtin.dnf:

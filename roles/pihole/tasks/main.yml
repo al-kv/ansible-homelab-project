@@ -1,4 +1,71 @@
 ---
+# =============================================================================
+# ЭТАП 0. Cleanup: если нативный Pi-hole был установлен — снести
+# =============================================================================
+- name: Check native pihole-FTL unit
+  ansible.builtin.stat:
+    path: /etc/systemd/system/pihole-FTL.service
+  register: pihole_native_unit
+
+- name: Stop and mask native pihole-FTL
+  ansible.builtin.systemd:
+    name: pihole-FTL
+    state: stopped
+    enabled: false
+    masked: true
+  when: pihole_native_unit.stat.exists
+  failed_when: false
+
+# =============================================================================
+# ЭТАП 1. Освобождаем порт 53: systemd-resolved
+# =============================================================================
+- name: Ensure resolved.conf.d directory
+  ansible.builtin.file:
+    path: /etc/systemd/resolved.conf.d
+    state: directory
+    mode: '0755'
+
+- name: Disable systemd-resolved DNSStubListener
+  ansible.builtin.copy:
+    dest: /etc/systemd/resolved.conf.d/99-pihole.conf
+    content: |
+      [Resolve]
+      DNSStubListener=no
+    mode: '0644'
+  notify: restart systemd-resolved
+
+- name: Flush handlers before resolv.conf rewrite
+  ansible.builtin.meta: flush_handlers
+
+# =============================================================================
+# ЭТАП 2. /etc/resolv.conf — снять immutable, убрать симлинк, создать файл
+# =============================================================================
+- name: Remove immutable attr from /etc/resolv.conf
+  ansible.builtin.command: chattr -i /etc/resolv.conf
+  changed_when: false
+  failed_when: false
+
+- name: Stat /etc/resolv.conf
+  ansible.builtin.stat:
+    path: /etc/resolv.conf
+  register: rc
+
+- name: Remove symlink /etc/resolv.conf
+  ansible.builtin.file:
+    path: /etc/resolv.conf
+    state: absent
+  when: rc.stat.islnk | default(false)
+
+- name: Write real /etc/resolv.conf
+  ansible.builtin.copy:
+    dest: /etc/resolv.conf
+    content: |
+      nameserver 127.0.0.1
+    mode: '0644'
+
+# =============================================================================
+# ЭТАП 3. Директории, compose, firewall
+# =============================================================================
 - name: Create pihole directories
   ansible.builtin.file:
     path: "/opt/pihole/{{ item }}"
@@ -8,35 +75,45 @@
     - etc-pihole
     - etc-dnsmasq.d
 
-- name: Copy docker-compose.yml
+- name: Render docker-compose.yml
   ansible.builtin.template:
     src: docker-compose.yml.j2
     dest: /opt/pihole/docker-compose.yml
     mode: '0644'
   notify: restart pihole
 
-- name: Open port 53/tcp
+- name: Open Pi-hole ports (Debian)
   community.general.ufw:
     rule: allow
-    port: '53'
-    proto: tcp
+    port: "{{ item.port }}"
+    proto: "{{ item.proto }}"
+  loop:
+    - { port: '53', proto: 'tcp' }
+    - { port: '53', proto: 'udp' }
+    - { port: '80', proto: 'tcp' }
   when: ansible_os_family == "Debian"
 
-- name: Open port 53/udp
-  community.general.ufw:
-    rule: allow
-    port: '53'
-    proto: udp
-  when: ansible_os_family == "Debian"
-
-- name: Open port 80 for Pi-hole admin
-  community.general.ufw:
-    rule: allow
-    port: '80'
-    proto: tcp
-  when: ansible_os_family == "Debian"
-
+# =============================================================================
+# ЭТАП 4. Запуск + ПРОВЕРКА
+# =============================================================================
 - name: Start Pi-hole stack
   community.docker.docker_compose_v2:
     project_src: /opt/pihole
     state: present
+
+- name: Wait for port 53
+  ansible.builtin.wait_for:
+    host: 127.0.0.1
+    port: 53
+    timeout: 60
+    state: started
+
+- name: Verify DNS through Pi-hole
+  ansible.builtin.command:
+    cmd: dig +short +time=3 +tries=1 @127.0.0.1 example.com
+  register: dig_result
+  changed_when: false
+  retries: 5
+  delay: 3
+  until: dig_result.stdout | length > 0
+  failed_when: dig_result.stdout | length == 0

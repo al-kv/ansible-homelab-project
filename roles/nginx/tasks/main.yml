@@ -6,6 +6,7 @@
     name: nginx
     state: present                  # установить (не удалять, не обновлять)
     update_cache: true              # обновить список пакетов перед установкой
+    lock_timeout: 300
   when: ansible_os_family == "Debian"
 
 - name: Install nginx (RedHat)

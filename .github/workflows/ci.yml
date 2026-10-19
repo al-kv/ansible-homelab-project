@@ -16,19 +16,29 @@ jobs:
         with:
           python-version: '3.12'
 
-      - name: Install ansible-lint
-        run: pip install ansible-core ansible-lint
+      - name: Install ansible + lint
+        run: |
+          pip install ansible-core ansible-lint
+          ansible-galaxy collection install community.general community.docker ansible.posix
 
       - name: Run ansible-lint
-        run: ansible-lint playbooks/ roles/ || true
+        run: ansible-lint playbooks/ roles/
 
       - name: Install shellcheck
         run: sudo apt-get install -y shellcheck
 
-      - name: Run shellcheck (if scripts exist)
+      - name: Run shellcheck
         run: |
           if find . -name "*.sh" | grep -q .; then
             find . -name "*.sh" -exec shellcheck {} +
           else
             echo "No shell scripts — skipping"
           fi
+
+      - name: Hadolint
+        uses: hadolint/hadolint-action@v3.1.0
+        with:
+          dockerfile: "**/Dockerfile*"
+          ignore: DL3018,DL3008
+          recursive: true
+        continue-on-error: true

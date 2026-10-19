@@ -2,21 +2,29 @@ services:
   pihole:
     image: pihole/pihole:latest
     container_name: pihole
+    hostname: pihole
     ports:
       - "53:53/tcp"
       - "53:53/udp"
       - "80:80/tcp"
     environment:
-      TZ: 'Europe/Moscow'
+      TZ: '{{ timezone }}'
       FTLCONF_webserver_api_password: "{{ pihole_password }}"
-      PIHOLE_DNS_: '1.1.1.1;8.8.8.8'
+      FTLCONF_dns_upstreams: '1.1.1.1;8.8.8.8'
       FTLCONF_dns_listeningMode: 'all'
     volumes:
       - './etc-pihole:/etc/pihole'
       - './etc-dnsmasq.d:/etc/dnsmasq.d'
     cap_add:
       - NET_ADMIN
+      - SYS_TIME
     dns:
-      - 8.8.8.8
       - 1.1.1.1
+      - 8.8.8.8
     restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "dig", "+short", "+time=2", "@127.0.0.1", "example.com"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 60s

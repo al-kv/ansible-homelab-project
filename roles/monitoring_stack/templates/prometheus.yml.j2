@@ -19,8 +19,6 @@ scrape_configs:
   - job_name: 'node'
     static_configs:
       - targets:
-          - '192.168.1.131:9100'
-          - '192.168.1.82:9100'
-          - '192.168.1.94:9100'
-          - '192.168.1.77:9100'
-          - '192.168.1.62:9100'
+{% for h in groups['all'] %}
+          - '{{ hostvars[h].ansible_host }}:9100'
+{% endfor %}

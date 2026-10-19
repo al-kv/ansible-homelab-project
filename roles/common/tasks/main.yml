@@ -1,11 +1,27 @@
 ---
+- name: Prevent apt lock races
+  ansible.builtin.include_tasks: apt-lock.yml
+
 - name: Set timezone
   community.general.timezone:
     name: "{{ timezone }}"
 
+# ---------------------------------------------------------------------------
+# EPEL для RedHat — нужен для fail2ban
+# ---------------------------------------------------------------------------
+- name: Install EPEL (RedHat)
+  ansible.builtin.dnf:
+    name: epel-release
+    state: present
+  when: ansible_os_family == "RedHat"
+
+# ---------------------------------------------------------------------------
+# Base packages
+# ---------------------------------------------------------------------------
 - name: Install base packages (Debian)
   ansible.builtin.apt:
     name:
+      - chrony
       - fail2ban
       - auditd
       - unattended-upgrades
@@ -18,11 +34,13 @@
       - bzip2
     state: present
     update_cache: true
+    lock_timeout: 300
   when: ansible_os_family == "Debian"
 
 - name: Install base packages (RedHat)
   ansible.builtin.dnf:
     name:
+      - chrony
       - fail2ban
       - audit
       - dnf-automatic
@@ -35,6 +53,35 @@
     state: present
   when: ansible_os_family == "RedHat"
 
+# ---------------------------------------------------------------------------
+# NTP
+# ---------------------------------------------------------------------------
+- name: Enable chrony (Debian)
+  ansible.builtin.service:
+    name: chrony
+    state: started
+    enabled: true
+  when: ansible_os_family == "Debian"
+
+- name: Enable chronyd (RedHat)
+  ansible.builtin.service:
+    name: chronyd
+    state: started
+    enabled: true
+  when: ansible_os_family == "RedHat"
+
+# ---------------------------------------------------------------------------
+# auditd — включить и запустить
+# ---------------------------------------------------------------------------
+- name: Enable auditd
+  ansible.builtin.service:
+    name: auditd
+    state: started
+    enabled: true
+
+# ---------------------------------------------------------------------------
+# SSH hardening
+# ---------------------------------------------------------------------------
 - name: Create sshd_config.d directory
   ansible.builtin.file:
     path: /etc/ssh/sshd_config.d
@@ -56,3 +103,16 @@
     name: fail2ban
     state: started
     enabled: true
+
+# Возвращаем apt-daily таймеры после всех apt-операций
+- name: Re-enable apt-daily timers (Debian)
+  ansible.builtin.systemd:
+    name: "{{ item }}"
+    state: started
+    enabled: true
+  loop:
+    - apt-daily.timer
+    - apt-daily-upgrade.timer
+  when: ansible_os_family == "Debian"
+  failed_when: false
+  changed_when: false

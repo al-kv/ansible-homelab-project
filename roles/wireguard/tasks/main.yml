@@ -6,6 +6,7 @@
     name: wireguard
     state: present
     update_cache: true
+    lock_timeout: 300
   when: ansible_os_family == "Debian"
 
 # 2. Включить IP forwarding. Без этого VPN-клиенты не выйдут в интернет

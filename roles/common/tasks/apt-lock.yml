@@ -1,0 +1,27 @@
+---
+# Гасим apt-daily таймеры. Не идемпотентно по природе (stop при работающем
+# таймере — всегда changed), поэтому changed_when: false.
+- name: Stop apt-daily timers (Debian)
+  ansible.builtin.systemd:
+    name: "{{ item }}"
+    state: stopped
+  loop:
+    - apt-daily.timer
+    - apt-daily-upgrade.timer
+    - unattended-upgrades.service
+  when: ansible_os_family == "Debian"
+  failed_when: false
+  changed_when: false
+
+- name: Wait for dpkg lock to be free
+  ansible.builtin.shell: |
+    for i in $(seq 1 60); do
+      if ! fuser /var/lib/dpkg/lock-frontend >/dev/null 2>&1; then
+        exit 0
+      fi
+      sleep 2
+    done
+    echo "TIMEOUT waiting for dpkg lock" >&2
+    exit 1
+  changed_when: false
+  when: ansible_os_family == "Debian"

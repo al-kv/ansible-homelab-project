@@ -14,7 +14,7 @@ scrape_configs:
         labels:
           job: syslog
           host: {{ inventory_hostname }}
-          __path__: /var/log/syslog
+          __path__: {{ '/var/log/messages' if ansible_os_family == 'RedHat' else '/var/log/syslog' }}
 
   - job_name: auth
     static_configs:
@@ -22,7 +22,7 @@ scrape_configs:
         labels:
           job: auth
           host: {{ inventory_hostname }}
-          __path__: /var/log/auth.log
+          __path__: {{ '/var/log/secure' if ansible_os_family == 'RedHat' else '/var/log/auth.log' }}
 
   - job_name: nginx
     static_configs:
@@ -31,3 +31,11 @@ scrape_configs:
           job: nginx
           host: {{ inventory_hostname }}
           __path__: /var/log/nginx/*.log
+
+  - job_name: fail2ban
+    static_configs:
+      - targets: [localhost]
+        labels:
+          job: fail2ban
+          host: {{ inventory_hostname }}
+          __path__: /var/log/fail2ban.log

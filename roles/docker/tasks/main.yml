@@ -9,6 +9,7 @@
       - docker-compose-v2
     state: present
     update_cache: true
+    lock_timeout: 300
   when: ansible_os_family == "Debian"
 
 - name: Enable and start docker

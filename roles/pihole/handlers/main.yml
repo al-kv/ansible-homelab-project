@@ -1,5 +1,19 @@
 ---
-- name: Restart pihole
+- name: restart systemd-resolved
+  ansible.builtin.systemd:
+    name: systemd-resolved
+    state: restarted
+
+# down + up — гарантированно пересоздать контейнер
+- name: restart pihole
   community.docker.docker_compose_v2:
     project_src: /opt/pihole
-    state: restarted
+    state: absent
+  listen: restart pihole
+
+- name: restart pihole (up)
+  community.docker.docker_compose_v2:
+    project_src: /opt/pihole
+    state: present
+    recreate: always
+  listen: restart pihole
