@@ -10,49 +10,49 @@
     src: docker-compose.yml.j2
     dest: /opt/monitoring/docker-compose.yml
     mode: '0644'
-  notify: restart monitoring
+  notify: Restart monitoring
 
 - name: Copy prometheus.yml (template — targets из inventory)
   ansible.builtin.template:
     src: prometheus.yml.j2
     dest: /opt/monitoring/prometheus.yml
     mode: '0644'
-  notify: restart monitoring
+  notify: Restart monitoring
 
 - name: Copy alerts.yml
   ansible.builtin.copy:
     src: alerts.yml
     dest: /opt/monitoring/alerts.yml
     mode: '0644'
-  notify: restart monitoring
+  notify: Restart monitoring
 
 - name: Copy alertmanager.yml
   ansible.builtin.template:
     src: alertmanager.yml.j2
     dest: /opt/monitoring/alertmanager.yml
     mode: '0644'
-  notify: restart monitoring
+  notify: Restart monitoring
 
 - name: Copy loki-config.yml
   ansible.builtin.copy:
     src: loki-config.yml
     dest: /opt/monitoring/loki-config.yml
     mode: '0644'
-  notify: restart monitoring
+  notify: Restart monitoring
 
 - name: Copy promtail-config.yml (для контейнера)
   ansible.builtin.copy:
     src: promtail-config.yml
     dest: /opt/monitoring/promtail-config.yml
     mode: '0644'
-  notify: restart monitoring
+  notify: Restart monitoring
 
 - name: Copy Grafana provisioning
   ansible.builtin.copy:
     src: grafana-provisioning/
     dest: /opt/monitoring/grafana-provisioning/
     mode: '0644'
-  notify: restart monitoring
+  notify: Restart monitoring
 
 - name: Start monitoring stack
   community.docker.docker_compose_v2:

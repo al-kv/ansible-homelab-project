@@ -48,9 +48,7 @@
     # Она лежит в group_vars/all/vars.yml → "1.8.2".
     # Меняешь версию в одном месте — меняется везде.
     # Итоговый URL: https://github.com/prometheus/node_exporter/releases/download/v1.8.2/node_exporter-1.8.2.linux-amd64.tar.gz
-    url: >-
-      https://github.com/prometheus/node_exporter/releases/download/
-      v{{ node_exporter_version }}/node_exporter-{{ node_exporter_version }}.linux-amd64.tar.gz
+    url: "{{ node_exporter_base_url }}/v{{ node_exporter_version }}/{{ node_exporter_archive_name }}"
     # Куда скачать на ЦЕЛЕВОЙ машине.
     # /tmp/ — временная папка, всё равно потом удалим.
     dest: /tmp/node_exporter.tar.gz
