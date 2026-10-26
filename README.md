@@ -1,4 +1,6 @@
 # Ansible Homelab Project
+> ⚠️ **Важно:** Это **вторая часть** моего Homelab-проекта (полная автоматизация через Ansible). 
+> **Первая часть** (ручная настройка той же инфраструктуры без Ansible, чтобы разобраться, как всё работает под капотом) доступна в репозитории: [Homelab-DevOps-Engineer](https://github.com/al-kv/Homelab-DevOps-Engineer).
 
 ![Ansible Lint](https://github.com/al-kv/ansible-homelab-project/actions/workflows/ci.yml/badge.svg)
 
