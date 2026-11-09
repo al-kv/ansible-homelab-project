@@ -80,7 +80,8 @@
     src: docker-compose.yml.j2
     dest: /opt/pihole/docker-compose.yml
     mode: '0644'
-  notify: Restart pihole
+  no_log: true
+  notify: restart pihole
 
 - name: Open Pi-hole ports (Debian)
   community.general.ufw:
