@@ -53,6 +53,8 @@ ansible-vault create inventory/group_vars/all/vault.yml
 ### 3. Установка коллекций и запуск
 ```bash
 ansible-galaxy collection install -r requirements.yml
+# Первый запуск: флаг -K спрашивает sudo-пароль один раз.
+# Роль common настроит passwordless sudo — все последующие запуски без -K.
 ansible-playbook playbooks/site.yml -K
 
 ```
@@ -68,3 +70,15 @@ ansible-playbook playbooks/site.yml
 - `ansible-lint` (стиль кода и синтаксис)
 - `shellcheck` (скрипты Bash)
 - `hadolint` (Dockerfile)
+
+## Если не работает (Troubleshooting)
+
+### `Missing sudo password` на одном из хостов
+
+На хосте уже есть файл в `/etc/sudoers.d/` для `ansible_user` с `ALL` (без `NOPASSWD`) — он **перекрывает** `90-ansible-nopasswd` (файлы читаются по алфавиту, последнее правило выигрывает). Убери его:
+
+```bash
+ssh -t admin@<host> 'sudo mv /etc/sudoers.d/<имя> /etc/sudoers.d/<имя>.bak && sudo visudo -c'
+```
+
+Проверка: `ssh <host> 'sudo -n true && echo OK'` — должно быть `OK` без пароля.
