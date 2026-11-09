@@ -19,7 +19,7 @@
       APT::Periodic::AutocleanInterval "7";
     mode: '0644'
   when: ansible_os_family == "Debian"
-  notify: restart unattended-upgrades
+  notify: Restart unattended-upgrades
 
 - name: Install dnf-automatic (RedHat)
   ansible.builtin.dnf:
