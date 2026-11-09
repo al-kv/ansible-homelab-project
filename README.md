@@ -52,8 +52,9 @@ ansible-vault create inventory/group_vars/all/vault.yml
 
 ### 3. Установка коллекций и запуск
 ```bash
-ansible-galaxy collection install community.general community.docker ansible.posix
-ansible-playbook playbooks/site.yml
+ansible-galaxy collection install -r requirements.yml
+ansible-playbook playbooks/site.yml -K
+
 ```
 
 ## Проверка идемпотентности
